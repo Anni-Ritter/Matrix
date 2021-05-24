@@ -5,40 +5,35 @@ namespace Matrix
 {
     public class MatrixThread
     {
-        private int[,] firstMatrix;
-        private int[,] secondMatrix;
-        private int firstIndex;
-        private int lastIndex;
-        private int size;
+        private int[,] FirstMatrix;
+        private int[,] SecondMatrix;
+        private int Size;
 
 
-        public MatrixThread(int[,] firstMatrix, int[,] secondMatrix, int firstIndex, int lastIndex, int size)
+        public MatrixThread(int[,] firstMatrix, int[,] secondMatrix, int size)
         {
-            this.firstMatrix = firstMatrix;
-            this.secondMatrix = secondMatrix;
-            this.firstIndex = firstIndex;
-            this.lastIndex = lastIndex;
-            this.size = size;
+            this.FirstMatrix = firstMatrix;
+            this.SecondMatrix = secondMatrix;
+            this.Size = size;
         }
 
         public void CalculateValue(int row, int col)
         {
-
-            int sum = 0;
-            for (int i = 0; i < size; ++i)
+            Program.ResultMatrix[row, col] = 0;
+            for (int i = 0; i < Size; ++i)
             {
-                sum += firstMatrix[row, i] * secondMatrix[i, col];
+                Program.ResultMatrix[row, col] += FirstMatrix[row, i] * SecondMatrix[i, col];
             }
-            Program.resultMatrix[row, col] = sum;
         }
-
-        public void RUN()
+        
+        public void MultipleMatrixThread(int firstIndex, int lastIndex)
         {
-
+        
             for (int index = firstIndex; index < lastIndex; ++index)
             {
-                CalculateValue(index / size, index % size);
+                CalculateValue(index / Size, index % Size);
             }
+            
         }
-    }
+    }    
 }

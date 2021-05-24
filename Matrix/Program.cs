@@ -5,54 +5,52 @@ namespace Matrix
 {
 	public class Program
 	{
-		public const int size = 100;
+		public const int Size = 100;
 
 
-		private static int[,] firstMatrix = InitializationMatrix();
-		private static int[,] secondMatrix = InitializationMatrix();
-		public static int[,] resultMatrix = new int[size, size];
-		public static int[,] resultMatrix2 = new int[size, size];
+		private static int[,] FirstMatrix = InitializationMatrix();
+		private static int[,] SecondMatrix = InitializationMatrix();
+		private static MatrixThread Matrix;
+		public static int[,] ResultMatrix = new int[Size, Size];
+		public static int[,] ResultMatrix2 = new int[Size, Size];
 
 
 		public static void Main(string[] args)
-		{		
+		{
 
-			int firstIndex = 0;
-			
-			Thread[] threads = new Thread[size];
-			var watch = System.Diagnostics.Stopwatch.StartNew();
-			for (int thredIndex = size - 1; thredIndex >= 0; --thredIndex)
+			int optimalThreads = Size * Size / Environment.ProcessorCount;
+			Thread[] threads = new Thread[Environment.ProcessorCount];
+			Matrix = new MatrixThread(FirstMatrix, SecondMatrix, Size);
+
+			for (int i = 0; i < threads.Length; i++)
             {
-				int lastIndex = firstIndex + size;
-				if (thredIndex == 0)
-                {
-					lastIndex = size * size;
-                }
-				threads[thredIndex] = new Thread(new ParameterizedThreadStart(SetMartixThread));
-				threads[thredIndex].Start(new MatrixThread(firstMatrix, secondMatrix, firstIndex, lastIndex, size));
-				firstIndex = lastIndex;
-            }
+				threads[i] = new Thread(SetMartixThread);
 
+				int[] indexes = { i * optimalThreads, (i + 1) * optimalThreads };
+				threads[i].Start(indexes);
+			}
+
+			var watch = System.Diagnostics.Stopwatch.StartNew();
 			foreach (var item in threads)
             {
 				item.Join();
             }
 			
 			watch.Stop();
-			var elapsedMs = watch.ElapsedMilliseconds;
+			var elapsedMs = watch.Elapsed;
 			Console.WriteLine("Время вычисления в многопоточном режиме: " + elapsedMs);
 
 
-			resultMatrix2 = MultiplicationMatrix();
+			ResultMatrix2 = MultiplicationMatrix();
 			
 			Console.WriteLine("Совпадение двух матриц: ");
 			bool flag = true;
 			
-			for (int row = 0; row < size; row++)
+			for (int row = 0; row < Size; row++)
 			{
-				for (int col = 0; col < size; col++)
+				for (int col = 0; col < Size; col++)
 				{
-					if (resultMatrix[row, col] != resultMatrix2[row, col])
+					if (ResultMatrix[row, col] != ResultMatrix2[row, col])
                     {
 						flag = false;
                     }
@@ -66,18 +64,18 @@ namespace Matrix
 
 		public static void SetMartixThread(object items)
 		{
-			MatrixThread item = (MatrixThread) items;
-			item.RUN();
+			int[] index = (int[])items;
+			Matrix.MultipleMatrixThread(index[0], index[1]);
 		}
 
 		private static int[,] InitializationMatrix()
 		{
-			var matrix = new int[size, size];
+			var matrix = new int[Size, Size];
 			var rand = new Random();
 
-			for (int i = 0; i < size; i++)
+			for (int i = 0; i < Size; i++)
 			{
-				for (int j = 0; j < size; j++)
+				for (int j = 0; j < Size; j++)
 				{
 					matrix[i, j] = rand.Next(1, 10);
 					//Console.Write(matrix[i, j] + ", ");
@@ -92,21 +90,21 @@ namespace Matrix
 		{
 			var watch = System.Diagnostics.Stopwatch.StartNew();
 
-			int[,] results = new int[size, size];
+			int[,] results = new int[Size, Size];
 		
-			for (int i = 0; i < firstMatrix.GetLength(0); i++)
+			for (int i = 0; i < FirstMatrix.GetLength(0); i++)
 			{
-				for (int j = 0; j < secondMatrix.GetLength(1); j++)
+				for (int j = 0; j < SecondMatrix.GetLength(1); j++)
 				{
-					for (int k = 0; k < secondMatrix.GetLength(0); k++)
+					for (int k = 0; k < SecondMatrix.GetLength(0); k++)
 					{
-						results[i, j] += firstMatrix[i, k] * secondMatrix[k, j];
+						results[i, j] += FirstMatrix[i, k] * SecondMatrix[k, j];
 					}
 				}
 			}
 
 			watch.Stop();
-			var elapsedMs = watch.ElapsedMilliseconds;
+			var elapsedMs = watch.Elapsed;
 			Console.WriteLine("Время вычисления в однопоточном режиме: " + elapsedMs);
 		
 			return results;
